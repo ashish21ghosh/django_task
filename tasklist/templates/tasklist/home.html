@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load my_filters %}
+{% block body %}
+
+{% for task in data %}
+<div class="card" style="margin-top: 15px;">
+  <div class="card-header">
+    <span>{{task.task_group}}-{{task.task_group_id}}:</span>
+    <span id="task_head{{task.task_id}}">{{task.task_head}}</span>
+    <div class="float-right row">
+        <!-- Trigger the modal with a button -->
+        <div class="col" style="cursor: pointer;" onclick="editModel({{task.task_id}})">
+            <i class="far fa-edit"></i>
+        </div>
+        <div class="col" style="cursor: pointer;" onclick="deleteTask({{task.task_id}})">
+            <i class="fa fa-times"></i>
+        </div>
+    </div>
+  </div>
+  <div class="card-body text-secondary container">
+    <div class="row">
+        <div class="col" id="task_description{{task.task_id}}">{{task.description}}</div>
+        <div class="col">
+            <div class="row">
+                <span>Due Date: </span><span> {{task.due_date | naturalday}}</span>
+                <input type="hidden" value="{{task.due_date|date:'Y-m-d'}}" id="due_date{{task.task_id}}">
+            </div>
+            <div class="row">
+                {% if task.task_id in sub_task %}
+                <span>Sub-task:</span>
+                <br />
+                <ul>
+                {% for row in sub_task|lookup:task.task_id %}
+                <li>
+                    <a href="">
+                    {{ row|lookup:"task_group" }}-{{ row|lookup:"task_group_id" }}
+                    </a>
+                </li>
+                {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <p>created: {{task.created_at | naturalday}}</p>
+    </div>
+    <a href="#" class="btn btn-primary" onclick="completeTask({{task.task_id}})">Done</a>
+  </div>
+</div>
+{% endfor %}
+
+<!-- Modal -->
+<div id="editTaskModel" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Edit Task</h4>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Task:</label>
+          <input type="text" class="form-control" id="edit_task_head">
+        </div>
+        <div class="form-group">
+          <label>Discription:</label>
+          <textarea class="form-control" rows="5" id="edit_description"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Due Date:</label>
+          <input type="date" class="form-control" id="edit_due_date">
+        </div>
+        <input type="hidden" name="task_id" id="edit_task_id" value="">
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="updateTask" class="btn btn-primary">Update</button>
+        <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Modal -->
+<div id="createTaskModel" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Add Task</h4>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form action="javascript:void(0);" id="taskForm">
+            {% csrf_token %}
+            {% for field in task_form %}
+            <div class="form-group">
+                {{ field }}
+            </div>
+            {% endfor %}
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button id="submitTask" type="button" class="btn btn-primary">Add</button>
+        <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}
